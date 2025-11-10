@@ -6,10 +6,20 @@ import "./App.css";
 function App() {
   const [greetMsg, setGreetMsg] = createSignal("");
   const [name, setName] = createSignal("");
+  const [connectionMsg, setConnectionMsg] = createSignal("");
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name: name() }));
+  }
+
+  async function test_connection() {
+    try {
+    const result = await invoke("connect_db", {connectionString: "postgresql://spec:5wYZtAy5m8OXFaUxRiJS8WqrbQTgLBNR@dpg-d490np15pdvs73clgv1g-a.ohio-postgres.render.com/vizql_postgres"});
+      setConnectionMsg(result as string);
+    } catch (error) {
+      setConnectionMsg(`Error: ${error}`);
+    }
   }
 
   return (
@@ -29,6 +39,9 @@ function App() {
       </div>
       <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
 
+      <button onClick={test_connection}>Test DB Connection</button>
+      <p>{connectionMsg()}</p>
+      
       <form
         class="row"
         onSubmit={(e) => {

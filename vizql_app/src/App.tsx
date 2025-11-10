@@ -15,7 +15,7 @@ function App() {
 
   async function test_connection() {
     try {
-    const result = await invoke("connect_db", {connectionString: "postgresql://spec:5wYZtAy5m8OXFaUxRiJS8WqrbQTgLBNR@dpg-d490np15pdvs73clgv1g-a.ohio-postgres.render.com/vizql_postgres"});
+    const result = await invoke("connect_db", {connectionString: ""});
       setConnectionMsg(result as string);
     } catch (error) {
       setConnectionMsg(`Error: ${error}`);

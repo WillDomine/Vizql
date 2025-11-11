@@ -13,12 +13,12 @@ function App() {
     setGreetMsg(await invoke("greet", { name: name() }));
   }
 
-  async function test_connection() {
+  async function init_connection(host: string, port: string, dbname: string, user: string, password: string) {
     try {
-    const result = await invoke("connect_db", {connectionString: ""});
-      setConnectionMsg(result as string);
+      await invoke("connect_db_pool", { dbname, user, password, host, port });
+      setConnectionMsg("Database connection pool initialized successfully.");
     } catch (error) {
-      setConnectionMsg(`Error: ${error}`);
+      setConnectionMsg(`Failed to initialize database connection pool: ${error}`);
     }
   }
 
@@ -39,7 +39,7 @@ function App() {
       </div>
       <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
 
-      <button onClick={test_connection}>Test DB Connection</button>
+      <button onClick={() => init_connection("localhost", "5432", "mydb", "postgres", "secret")}>Test DB Connection</button>
       <p>{connectionMsg()}</p>
       
       <form

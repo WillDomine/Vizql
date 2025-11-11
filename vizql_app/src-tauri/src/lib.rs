@@ -1,5 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tokio_postgres::{NoTls, Error};
+use tokio_postgres::{NoTls};
 use deadpool_postgres::{Config, Pool};
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
@@ -29,12 +29,51 @@ fn connect_db_pool(dbname: &str, user: &str, password: &str, host: &str, port: &
     Ok(())
 }
 
+#[tauri::command]
+async fn create_user(username: &str, email: &str) -> Result<(), String> {
+    let pool = DB_POOL.get().ok_or("Database pool not initialized".to_string())?;
+
+    // `pool.get()` returns a Future, so await it. Add context to errors to aid debugging.
+    let client = pool
+        .get()
+        .await
+        .map_err(|e| format!("failed to get client from pool: {}", e))?;
+
+    client
+        .execute(
+            "INSERT INTO users (username, email) VALUES ($1, $2)",
+            &[&username, &email],
+        )
+        .await
+        .map_err(|e| format!("failed to execute insert: {}", e))?;
+
+    println!("User {} created successfully.", username);
+    Ok(())
+}
+
+#[tauri::command]
+async fn test_pool() -> Result<String, String> {
+    let pool = DB_POOL.get().ok_or("Database pool not initialized".to_string())?;
+    let client = pool
+        .get()
+        .await
+        .map_err(|e| format!("failed to get client from pool: {}", e))?;
+
+    // Run a minimal query to verify the connection
+    client
+        .query("SELECT 1", &[])
+        .await
+        .map_err(|e| format!("test query failed: {}", e))?;
+
+    Ok("pool ok".to_string())
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, connect_db_pool])
+    .invoke_handler(tauri::generate_handler![greet, connect_db_pool, create_user, test_pool])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

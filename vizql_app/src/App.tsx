@@ -1,62 +1,102 @@
-import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
+import { createSignal, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
+  const [host, setHost] = createSignal("localhost");
+  const [port, setPort] = createSignal("5432");
+  const [dbname, setDbname] = createSignal("mydb");
+  const [user, setUser] = createSignal("postgres");
+  const [password, setPassword] = createSignal("");
   const [connectionMsg, setConnectionMsg] = createSignal("");
+  const [connected, setConnected] = createSignal(false);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name: name() }));
-  }
+  const [username, setUsername] = createSignal("");
+  const [email, setEmail] = createSignal("");
 
   async function init_connection(host: string, port: string, dbname: string, user: string, password: string) {
     try {
       await invoke("connect_db_pool", { dbname, user, password, host, port });
       setConnectionMsg("Database connection pool initialized successfully.");
+      setConnected(true);
     } catch (error) {
       setConnectionMsg(`Failed to initialize database connection pool: ${error}`);
     }
   }
 
+  async function create_user(username: string, email: string) {
+    try {
+      await invoke("create_user", { username, email });
+      setConnectionMsg("User created successfully.");
+    } catch (error) {
+      setConnectionMsg(`Failed to create user: ${error}`);
+    }
+  }
+
   return (
     <main class="container">
-      <h1>Welcome to Tauri + Solid</h1>
-
-      <div class="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
-
-      <button onClick={() => init_connection("localhost", "5432", "mydb", "postgres", "secret")}>Test DB Connection</button>
-      <p>{connectionMsg()}</p>
-      
-      <form
-        class="row"
-        onSubmit={(e) => {
+      <Show when={!connected()}>
+        <form class="column" onsubmit={(e) => {
           e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg()}</p>
+          init_connection(host(), port(), dbname(), user(), password());
+        }}>
+          <input 
+            type="text" 
+            placeholder="Host" 
+            value={host()} 
+            onInput={(e) => setHost(e.currentTarget.value)} 
+          />
+          <input 
+            type="text" 
+            placeholder="Port" 
+            value={port()} 
+            onInput={(e) => setPort(e.currentTarget.value)} 
+          />
+          <input 
+            type="text" 
+            placeholder="Database" 
+            value={dbname()} 
+            onInput={(e) => setDbname(e.currentTarget.value)} 
+          />
+          <input 
+            type="text" 
+            placeholder="User" 
+            value={user()} 
+            onInput={(e) => setUser(e.currentTarget.value)} 
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password()} 
+            onInput={(e) => setPassword(e.currentTarget.value)} 
+          />
+          <button type="submit">Connect to Database</button>
+        </form>
+      </Show>
+
+      <p>{connectionMsg()}</p>
+
+      <Show when={connected()}>
+        <form class="column" onsubmit={(e) => {
+          e.preventDefault()
+          create_user(username(), email())
+        }}>
+          <input 
+            type="text" 
+            placeholder="Username" 
+            value={username()} 
+            onInput={(e) => setUsername(e.currentTarget.value)} 
+          />
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email()} 
+            onInput={(e) => setEmail(e.currentTarget.value)} 
+          />
+          <button type="submit">Create User</button>
+        </form>
+      </Show>
+
     </main>
   );
 }

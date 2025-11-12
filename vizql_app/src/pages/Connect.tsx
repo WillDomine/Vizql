@@ -5,8 +5,8 @@ import { invoke } from "@tauri-apps/api/core";
 function Connection_Page() {
     const [host, setHost] = createSignal("localhost");
     const [port, setPort] = createSignal("5432");
-    const [dbname, setDbname] = createSignal("");
-    const [user, setUser] = createSignal("");
+    const [dbname, setDbname] = createSignal("willdomine");
+    const [user, setUser] = createSignal("willdomine");
     const [password, setPassword] = createSignal("");
 
 

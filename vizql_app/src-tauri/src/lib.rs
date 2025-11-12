@@ -41,54 +41,23 @@ async fn create_table(table_name: String, columns: Vec<HashMap<String, String>>)
         .await
         .map_err(|e| format!("failed to get client from pool: {}", e))?;
 
-    let test_columns = vec![
-        {
-            let mut col = HashMap::new();
-            col.insert("name".to_string(), "id".to_string());
-            col.insert("type".to_string(), "SERIAL PRIMARY KEY".to_string());
-            col
-        },
-        {
-            let mut col = HashMap::new();
-            col.insert("name".to_string(), "name".to_string());
-            col.insert("type".to_string(), "VARCHAR(100) NOT NULL".to_string());
-            col
-        },
-        {
-            let mut col = HashMap::new();
-            col.insert("name".to_string(), "age".to_string());
-            col.insert("type".to_string(), "INT".to_string());
-            col
-        },
-    ];
-
-    // Use provided columns/table_name if supplied, otherwise fall back to test values
-    let cols = if columns.is_empty() { test_columns } else { columns };
-    let tbl = if table_name.is_empty() { "test_table".to_string() } else { table_name };
-
     let query = format!(
         "CREATE TABLE {} ({})",
-        tbl,
-        cols
+        table_name,
+        columns
             .iter()
             .map(|col| format!("{} {}", col.get("name").unwrap(), col.get("type").unwrap()))
             .collect::<Vec<String>>()
             .join(", ")
     );
-
-    println!("Executing query: {}", query);
-
-    /* 
-    client
-        .execute(
-            "INSERT INTO users (username, email) VALUES ($1, $2)",
-            &[&username, &email],
-        )
+    
+    _client
+        .execute(query.as_str(), &[])
         .await
-        .map_err(|e| format!("failed to execute insert: {}", e))?;
+        .map_err(|e| format!("failed to execute create table: {}", e))?;
 
-    println!("User {} created successfully.", username);
-    */
+    println!("Table '{}' created successfully.", table_name);
+
     Ok(())
 }
 

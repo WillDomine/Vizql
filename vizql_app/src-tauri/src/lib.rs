@@ -1,8 +1,10 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-use tokio_postgres::{NoTls, Error};
+use tokio_postgres::{NoTls};
 use deadpool_postgres::{Config, Pool};
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
+use std::vec::Vec;
+use std::collections::HashMap;
 
 static DB_POOL : OnceCell<Arc<Pool>> = OnceCell::new();
 
@@ -29,12 +31,71 @@ fn connect_db_pool(dbname: &str, user: &str, password: &str, host: &str, port: &
     Ok(())
 }
 
+#[tauri::command]
+async fn create_table(table_name: String, columns: Vec<HashMap<String, String>>) -> Result<(), String> {
+    let pool = DB_POOL.get().ok_or("Database pool not initialized".to_string())?;
+
+    // `pool.get()` returns a Future, so await it. Add context to errors to aid debugging.
+    let _client = pool
+        .get()
+        .await
+        .map_err(|e| format!("failed to get client from pool: {}", e))?;
+
+    let query = format!(
+        "CREATE TABLE {} ({})",
+        table_name,
+        columns
+            .iter()
+            .map(|col| format!("{} {}", col.get("name").unwrap(), col.get("type").unwrap()))
+            .collect::<Vec<String>>()
+            .join(", ")
+    );
+    
+    _client
+        .execute(query.as_str(), &[])
+        .await
+        .map_err(|e| format!("failed to execute create table: {}", e))?;
+
+    println!("Table '{}' created successfully.", table_name);
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn list_tables() -> Result<Vec<String>, String> {
+    let pool = DB_POOL.get().ok_or("Database pool not initialized".to_string())?;
+
+    let client = pool
+        .get()
+        .await
+        .map_err(|e| format!("Failed to get client from pool: {}", e))?;
+
+    let rows = client
+        .query(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'",
+            &[],
+        )
+        .await
+        .map_err(|e| format!("Failed to query tables: {}", e))?;
+
+    // Extract table names as Vec<String>
+    let table_names = rows
+        .iter()
+        .map(|row| row.get::<_, String>("table_name"))
+        .collect();
+
+    println!("Retrieved tables: {:?}", table_names);
+    
+    Ok(table_names)
+}
+
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, connect_db_pool])
+        .invoke_handler(tauri::generate_handler![greet, connect_db_pool, create_table, list_tables])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

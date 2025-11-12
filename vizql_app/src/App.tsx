@@ -1,63 +1,55 @@
-import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { createSignal, Show } from "solid-js";
 import "./App.css";
+import Connection_Page from "./pages/Connect.tsx";
+import CreateTableModal from "./components/CreateTableModal.tsx";
+import Layout from "./components/Layout";
+import { invoke } from "@tauri-apps/api/core";
+
+export const [connected, setConnected] = createSignal(false);
+export const [tables, setTables] = createSignal<string[]>([]);
 
 function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
-  const [connectionMsg, setConnectionMsg] = createSignal("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name: name() }));
-  }
-
-  async function init_connection(host: string, port: string, dbname: string, user: string, password: string) {
-    try {
-      await invoke("connect_db_pool", { dbname, user, password, host, port });
-      setConnectionMsg("Database connection pool initialized successfully.");
-    } catch (error) {
-      setConnectionMsg(`Failed to initialize database connection pool: ${error}`);
-    }
-  }
+  const [showNewTable, setShowNewTable] = createSignal(false);
+  const [selectedTable, setSelectedTable] = createSignal<string | null>(null);
 
   return (
-    <main class="container">
-      <h1>Welcome to Tauri + Solid</h1>
+    <>
+      <Show when={!connected()}>
+        <Connection_Page />
+      </Show>
 
-      <div class="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
+      <Show when={connected()}>
+        <Layout
+          tables={tables}
+          onTableSelect={(tableName) => setSelectedTable(tableName)}
+          onCreateClick={() => setShowNewTable(true)}
+        >
+          <Show when={selectedTable()}>
+            <div>
+              <h2>{selectedTable()} Details</h2>
+              <p>Table schema view will go here</p>
+            </div>
+          </Show>
 
-      <button onClick={() => init_connection("localhost", "5432", "mydb", "postgres", "secret")}>Test DB Connection</button>
-      <p>{connectionMsg()}</p>
-      
-      <form
-        class="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+          <Show when={!selectedTable()}>
+            <div>
+              <h2>Welcome</h2>
+              <p>Select a table from the left or create a new one</p>
+            </div>
+          </Show>
+        </Layout>
+
+        <CreateTableModal
+          show={showNewTable}
+          onClose={() => setShowNewTable(false)}
+          onCreated={async () => {
+            await invoke("list_tables").then((tbls) => {
+              setTables(tbls as string[]);
+            });
+          }}
         />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg()}</p>
-    </main>
+      </Show>
+    </>
   );
 }
 

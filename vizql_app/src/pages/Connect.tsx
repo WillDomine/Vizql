@@ -48,6 +48,8 @@ function Connection_Page() {
                         password(),
                     );
                 }}
+                autocomplete="off"
+                autocapitalize="off"
             >
                 <input
                     type="text"

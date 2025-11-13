@@ -114,6 +114,8 @@ export default function CreateTableModal(props: {
                                 value={tableName()}
                                 onInput={(e) =>
                                     setTableName(e.currentTarget.value)}
+                                autocomplete="off"
+                                autocapitalize="off"
                             />
                         </label>
 
@@ -130,14 +132,34 @@ export default function CreateTableModal(props: {
                                                 onInput={(e) => {
                                                     signals.setName(e.currentTarget.value);
                                                 }}
+                                                autocomplete="off"
+                                                autocapitalize="off"
                                             />
-                                            <input
-                                                placeholder="column type"
+                                            <select
                                                 value={signals.type()}
-                                                onInput={(e) => {
+                                                onChange={(e) => {
                                                     signals.setType(e.currentTarget.value);
                                                 }}
-                                            />
+                                                class="column-type-select"
+                                            >
+                                                <option value="TEXT">TEXT</option>
+                                                <option value="INTEGER">INTEGER</option>
+                                                <option value="BIGINT">BIGINT</option>
+                                                <option value="SMALLINT">SMALLINT</option>
+                                                <option value="DECIMAL">DECIMAL</option>
+                                                <option value="REAL">REAL</option>
+                                                <option value="DOUBLE PRECISION">DOUBLE PRECISION</option>
+                                                <option value="BOOLEAN">BOOLEAN</option>
+                                                <option value="DATE">DATE</option>
+                                                <option value="TIME">TIME</option>
+                                                <option value="TIMESTAMP">TIMESTAMP</option>
+                                                <option value="UUID">UUID</option>
+                                                <option value="JSON">JSON</option>
+                                                <option value="JSONB">JSONB</option>
+                                                <option value="BYTEA">BYTEA</option>
+                                                <option value="VARCHAR">VARCHAR</option>
+                                                <option value="CHAR">CHAR</option>
+                                            </select>
                                             <button class="column-remove" onClick={() => remove_column(col.id)}>×</button>
                                         </div>
                                     );

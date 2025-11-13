@@ -238,6 +238,26 @@
   border: 1px solid #ddd;
 }
 
+.column-type-select {
+  flex: 1;
+  height: 44px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  translate: 0px -4px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.column-type-select:focus {
+  outline: none;
+  border-color: #333;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
 /* Remove-column button inside the columns-row */
 .column-remove {
   background: #e74c3c;
@@ -379,6 +399,17 @@
   }
 
   .modal-body input:focus {
+    border-color: #f0f0f0;
+    box-shadow: 0 0 0 3px rgba(240, 240, 240, 0.2);
+  }
+
+  .column-type-select {
+    background: #3a3a3a;
+    border-color: #555;
+    color: #f0f0f0;
+  }
+
+  .column-type-select:focus {
     border-color: #f0f0f0;
     box-shadow: 0 0 0 3px rgba(240, 240, 240, 0.2);
   }

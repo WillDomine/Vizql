@@ -89,13 +89,45 @@ async fn list_tables() -> Result<Vec<String>, String> {
     Ok(table_names)
 }
 
+#[tauri::command]
+async fn list_table_columns(table_name: String) -> Result<Vec<HashMap<String, String>>, String> {
+    let pool = DB_POOL.get().ok_or("Database pool not initialized".to_string())?;
+
+    let client = pool
+        .get()
+        .await
+        .map_err(|e| format!("Failed to get client from pool: {}", e))?;
+
+    let rows = client
+        .query(
+            "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
+            &[&table_name],
+        )
+        .await
+        .map_err(|e| format!("Failed to query columns: {}", e))?;
+
+    // Extract column details as Vec<HashMap<String, String>>
+    let columns = rows
+        .iter()
+        .map(|row| {
+            let mut col_info = HashMap::new();
+            col_info.insert("name".to_string(), row.get::<_, String>("column_name"));
+            col_info.insert("type".to_string(), row.get::<_, String>("data_type"));
+            col_info
+        })
+        .collect();
+
+    println!("Retrieved columns for table '{}': {:?}", table_name, columns);
+    
+    Ok(columns)
+}
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, connect_db_pool, create_table, list_tables])
+        .invoke_handler(tauri::generate_handler![greet, connect_db_pool, create_table, list_tables, list_table_columns])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

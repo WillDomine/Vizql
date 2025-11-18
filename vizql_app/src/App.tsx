@@ -11,6 +11,13 @@ export const [tables, setTables] = createSignal<string[]>([]);
 function App() {
   const [showNewTable, setShowNewTable] = createSignal(false);
   const [selectedTable, setSelectedTable] = createSignal<string | null>(null);
+  const [selectedTableColumns, setSelectedTableColumns] = createSignal<any[]>([]);
+
+  async function get_table_columns(tableName: string) {
+    await invoke("list_table_columns", { tableName: tableName }).then((cols) => {
+      setSelectedTableColumns(cols as any[]);
+    });
+  }
 
   return (
     <>
@@ -21,13 +28,23 @@ function App() {
       <Show when={connected()}>
         <Layout
           tables={tables}
-          onTableSelect={(tableName) => setSelectedTable(tableName)}
+          onTableSelect={async (tableName) => {
+            setSelectedTable(tableName);
+            await get_table_columns(tableName);
+            console.log(selectedTableColumns());
+          }}
           onCreateClick={() => setShowNewTable(true)}
         >
           <Show when={selectedTable()}>
             <div>
-              <h2>{selectedTable()} Details</h2>
-              <p>Table schema view will go here</p>
+              <h2>{selectedTable()!.charAt(0).toUpperCase() + selectedTable()!.slice(1)} Table Columns</h2>
+              <ul>
+                {selectedTableColumns().map((col) => (
+                  <li>
+                    {col.name} - {col.type}
+                  </li>
+                ))}
+              </ul>
             </div>
           </Show>
 

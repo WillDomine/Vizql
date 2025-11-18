@@ -1,4 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tokio_postgres::{NoTls};
 use deadpool_postgres::{Config, Pool};
 use once_cell::sync::OnceCell;

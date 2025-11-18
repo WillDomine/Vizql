@@ -31,20 +31,13 @@ function App() {
           onTableSelect={async (tableName) => {
             setSelectedTable(tableName);
             await get_table_columns(tableName);
-            console.log(selectedTableColumns());
           }}
           onCreateClick={() => setShowNewTable(true)}
         >
           <Show when={selectedTable()}>
             <div>
               <h2>{selectedTable()!.charAt(0).toUpperCase() + selectedTable()!.slice(1)} Table Columns</h2>
-              <ul>
-                {selectedTableColumns().map((col) => (
-                  <li>
-                    {col.name} - {col.type}
-                  </li>
-                ))}
-              </ul>
+              
             </div>
           </Show>
 

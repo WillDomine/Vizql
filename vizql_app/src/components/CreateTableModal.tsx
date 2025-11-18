@@ -160,6 +160,7 @@ export default function CreateTableModal(props: {
                                                 <option value="VARCHAR">VARCHAR</option>
                                                 <option value="CHAR">CHAR</option>
                                             </select>
+                                            
                                             <button class="column-remove" onClick={() => remove_column(col.id)}>×</button>
                                         </div>
                                     );
@@ -171,7 +172,8 @@ export default function CreateTableModal(props: {
                     </div>
 
                         <footer class="modal-footer">
-                        <button
+                        <div style={{ display: "flex", gap: "10px" }}>
+                            <button
                             onClick={() => props.onClose()}
                             disabled={busy()}
                         >
@@ -180,6 +182,7 @@ export default function CreateTableModal(props: {
                         <button onClick={add_column} disabled={busy()}>
                             + Add Column
                         </button>
+                        </div>
                         <button onClick={submit} disabled={busy()}>
                             {busy() ? "Creating..." : "Create Table"}
                         </button>
